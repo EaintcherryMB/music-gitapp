@@ -21,7 +21,7 @@
             --sidebar-bg: #1c1c1c;
         }
 
-        body { font-family: 'Pyidaungsu', sans-serif; display: flex; margin: 0; background-color: var(--bg-color); color: var(--text-color); transition: 0.3s; min-height: 100vh; flex-direction: column; }
+        body { font-family: sans-serif; display: flex; margin: 0; background-color: var(--bg-color); color: var(--text-color); transition: 0.3s; min-height: 100vh; flex-direction: column; }
         @media (min-width: 768px) { body { flex-direction: row; } }
 
         /* Sidebar */
@@ -34,7 +34,7 @@
         .main { flex: 1; padding: 20px; padding-bottom: 180px; }
         #content-display { max-width: 800px; margin: 0 auto; }
         
-        .post-card { background: var(--card-bg); border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; border: 3px solid transparent; transition: 0.3s; }
+        .post-card { background: var(--card-bg); border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; border: 3px solid transparent; transition: 0.3s; position: relative; }
         .is-playing { border-color: var(--playing-border); background: rgba(46, 204, 113, 0.05); }
 
         /* Audio Player Bar */
@@ -47,7 +47,6 @@
         .repeat-status-tag { font-size: 11px; color: #bbb; margin-bottom: 4px; font-weight: bold; }
         .track-info { font-size: 14px; margin-bottom: 8px; color: #2ecc71; font-weight: bold; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        /* Seek Bar Style */
         .seek-container { width: 100%; max-width: 600px; display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         #seek-bar { flex: 1; height: 5px; cursor: pointer; accent-color: #2ecc71; }
         .time-text { font-size: 11px; color: #bbb; min-width: 35px; }
@@ -58,7 +57,7 @@
         .active-repeat { color: #2ecc71; text-shadow: 0 0 8px #2ecc71; }
 
         /* Admin & Modals */
-        .admin-controls { display: none; padding: 10px 20px; background: rgba(0,0,0,0.05); justify-content: flex-end; gap: 15px; }
+        .admin-controls { display: none; padding: 10px; background: rgba(0,0,0,0.05); justify-content: flex-end; gap: 15px; }
         .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); padding: 25px; border-radius: 15px; z-index: 3000; width: 90%; max-width: 400px; box-shadow: 0 10px 50px rgba(0,0,0,0.3); }
         #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2999; backdrop-filter: blur(4px); }
         
@@ -71,16 +70,16 @@
 
     <div class="sidebar">
         <h2>🎓 Portal 2026</h2>
-        <div onclick="toggleTheme()" style="cursor:pointer; text-align:center; padding:10px; background:rgba(255,255,255,0.1); border-radius:8px; margin-bottom:15px;">🌓 Theme Change</div>
+        <div id="theme-btn" style="cursor:pointer; text-align:center; padding:10px; background:rgba(255,255,255,0.1); border-radius:8px; margin-bottom:15px;">🌓 Theme Change</div>
         
-        <div id="m-all" class="menu-item menu-active" onclick="handleFilter('all', 'm-all')">🏠 အားလုံး</div>
-        <div id="m-audio" class="menu-item" onclick="handleFilter('audio', 'm-audio')">🎵 သီချင်းနှင့် တရား</div>
-        <div id="m-study" class="menu-item" onclick="handleFilter('study', 'm-study')">📘 စာကျက်နည်းများ</div>
+        <div id="m-all" class="menu-item menu-active">🏠 အားလုံး</div>
+        <div id="m-audio" class="menu-item">🎵 သီချင်းနှင့် တရား</div>
+        <div id="m-study" class="menu-item">📘 စာကျက်နည်းများ</div>
 
         <div style="margin-top:20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:10px;">
-            <div id="admin-status" onclick="showModal('login-modal')" style="cursor:pointer; color:#2ecc71;">🔒 Admin Login</div>
+            <div id="admin-status" style="cursor:pointer; color:#2ecc71;">🔒 Admin Login</div>
             <div id="admin-tools" style="display:none; margin-top:10px;">
-                <button onclick="showModal('pass-modal')" style="width:100%; background:#f39c12; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; font-size:11px;">🔑 Change Password</button>
+                <button id="change-pass-btn" style="width:100%; background:#f39c12; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; font-size:11px;">🔑 Change Password</button>
             </div>
         </div>
     </div>
@@ -102,28 +101,28 @@
 
         <audio id="audio-engine"></audio>
         <div class="player-controls">
-            <div class="p-btn" id="repeat-btn" onclick="cycleRepeatMode()" title="Repeat Mode">🔁</div>
-            <div class="p-btn" onclick="playPrevious()">⏮</div>
-            <div class="p-btn" id="play-pause-btn" onclick="togglePlay()" style="font-size:35px;">▶️</div>
-            <div class="p-btn" onclick="playNext()">⏭</div>
-            <div class="p-btn" onclick="closePlayer()" title="Close Player">✖️</div>
+            <div class="p-btn" id="repeat-btn" title="Repeat Mode">🔁</div>
+            <div class="p-btn" id="prev-btn">⏮</div>
+            <div class="p-btn" id="play-pause-btn" style="font-size:35px;">▶️</div>
+            <div class="p-btn" id="next-btn">⏭</div>
+            <div class="p-btn" id="close-player-btn" title="Close Player">✖️</div>
         </div>
     </div>
 
-    <button id="add-btn" class="fab" onclick="showModal('upload-modal')" style="display:none;">+</button>
-    <div id="overlay" onclick="hideAllModals()"></div>
+    <button id="add-btn" class="fab" style="display:none;">+</button>
+    <div id="overlay"></div>
 
     <div id="login-modal" class="modal">
         <h3>Admin Login</h3>
         <input type="password" id="loginPass" placeholder="Password">
-        <button class="btn-primary" onclick="handleLogin()">Login</button>
+        <button class="btn-primary" id="login-submit">Login</button>
     </div>
 
     <div id="pass-modal" class="modal">
         <h3>Password ပြောင်းရန်</h3>
         <input type="password" id="oldP" placeholder="Old Password">
         <input type="password" id="newP" placeholder="New Password">
-        <button class="btn-primary" onclick="handlePassUpdate()">Update</button>
+        <button class="btn-primary" id="pass-submit">Update</button>
     </div>
 
     <div id="upload-modal" class="modal">
@@ -136,13 +135,14 @@
         <input type="text" id="postTitle" placeholder="ခေါင်းစဉ်">
         <textarea id="postContent" rows="4" placeholder="အကြောင်းအရာ"></textarea>
         <input type="text" id="postAudioUrl" placeholder="Audio Link">
-        <button class="btn-primary" onclick="handleSave()">သိမ်းမည်</button>
+        <button class="btn-primary" id="save-post-btn">သိမ်းမည်</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, where, serverTimestamp, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, where, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyC4c2aE6LOMjf00e_SPIB7snz8MbYy37_g",
             authDomain: "cherry-project-08.firebaseapp.com",
@@ -157,15 +157,28 @@
         let isAdmin = false;
         let playlist = [];
         let currentIndex = -1;
-        let repeatMode = 0; // 0: Off, 1: All, 2: One
+        let repeatMode = 0; 
 
         const audio = document.getElementById('audio-engine');
         const playPauseBtn = document.getElementById('play-pause-btn');
         const seekBar = document.getElementById('seek-bar');
-        const currentTimeEl = document.getElementById('current-time');
-        const totalDurationEl = document.getElementById('total-duration');
-        const repeatBtn = document.getElementById('repeat-btn');
-        const repeatText = document.getElementById('repeat-status-text');
+
+        // --- Core Functions ---
+        window.toggleTheme = () => {
+            const b = document.body;
+            const newTheme = b.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            b.setAttribute('data-theme', newTheme);
+        };
+
+        window.showModal = (id) => {
+            document.getElementById(id).style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        };
+
+        window.hideAllModals = () => {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            document.getElementById('overlay').style.display = 'none';
+        };
 
         // --- Audio Logic ---
         function formatTime(secs) {
@@ -178,14 +191,12 @@
         audio.ontimeupdate = () => {
             if (audio.duration) {
                 seekBar.value = (audio.currentTime / audio.duration) * 100;
-                currentTimeEl.innerText = formatTime(audio.currentTime);
-                totalDurationEl.innerText = formatTime(audio.duration);
+                document.getElementById('current-time').innerText = formatTime(audio.currentTime);
+                document.getElementById('total-duration').innerText = formatTime(audio.duration);
             }
         };
 
-        seekBar.oninput = () => {
-            audio.currentTime = (seekBar.value / 100) * audio.duration;
-        };
+        seekBar.oninput = () => { audio.currentTime = (seekBar.value / 100) * audio.duration; };
 
         window.initTrack = (index) => {
             if (index < 0 || index >= playlist.length) return;
@@ -218,34 +229,6 @@
             initTrack(prev);
         };
 
-        window.cycleRepeatMode = () => {
-            repeatMode = (repeatMode + 1) % 3;
-            if (repeatMode === 0) {
-                repeatBtn.innerText = "🔁";
-                repeatBtn.classList.remove('active-repeat');
-                repeatText.innerText = "Repeat Off";
-                repeatText.style.color = "#bbb";
-            } else if (repeatMode === 1) {
-                repeatBtn.innerText = "🔁";
-                repeatBtn.classList.add('active-repeat');
-                repeatText.innerText = "Repeat All";
-                repeatText.style.color = "#2ecc71";
-            } else if (repeatMode === 2) {
-                repeatBtn.innerText = "🔂";
-                repeatBtn.classList.add('active-repeat');
-                repeatText.innerText = "Repeat One";
-                repeatText.style.color = "#2ecc71";
-            }
-        };
-
-        audio.onended = () => {
-            if (repeatMode === 2) audio.play();
-            else if (repeatMode === 1 || currentIndex < playlist.length - 1) playNext();
-            else playPauseBtn.innerText = "▶️";
-        };
-
-        window.closePlayer = () => { audio.pause(); document.getElementById('player-bar').style.display = 'none'; };
-
         // --- Firebase Content ---
         window.loadContent = (filter = 'all') => {
             let q = query(collection(db, "portal_content"), orderBy("date", "desc"));
@@ -262,13 +245,17 @@
                     if (hasAudio) playlist.push({ id, title: data.title, url: data.audioUrl });
                     const pIdx = playlist.length - 1;
 
+                    // Admin စစ်ဆေးပြီးမှ ပြင်ရန်/ဖျက်ရန် ခလုတ်ကို ထည့်သွင်းပေးခြင်း
+                    let adminHtml = isAdmin ? `
+                        <div class="admin-controls" style="display: flex">
+                            <button onclick="window.editPost('${id}', '${data.category}', \`${data.title}\`, \`${data.content}\`, '${data.audioUrl}')" style="color:#3498db; border:none; background:none; cursor:pointer;">ပြင်ရန်</button>
+                            <button onclick="window.deletePost('${id}')" style="color:#e74c3c; border:none; background:none; cursor:pointer;">ဖျက်ရန်</button>
+                        </div>` : '';
+
                     display.innerHTML += `
                         <div class="post-card" id="card-${id}">
-                            <div class="admin-controls" style="display: ${isAdmin ? 'flex' : 'none'}">
-                                <button onclick="editPost('${id}', '${data.category}', \`${data.title}\`, \`${data.content}\`, '${data.audioUrl}')" style="color:#3498db; border:none; background:none; cursor:pointer;">ပြင်ရန်</button>
-                                <button onclick="deletePost('${id}')" style="color:#e74c3c; border:none; background:none; cursor:pointer;">ဖျက်ရန်</button>
-                            </div>
-                            <div style="padding:20px; cursor: ${hasAudio ? 'pointer' : 'default'}" onclick="${hasAudio ? `initTrack(${pIdx})` : ''}">
+                            ${adminHtml}
+                            <div style="padding:20px; cursor: ${hasAudio ? 'pointer' : 'default'}" onclick="${hasAudio ? `window.initTrack(${pIdx})` : ''}">
                                 <small>#${data.category}</small>
                                 <h2 style="margin:5px 0;">${data.title} ${hasAudio ? '🎵' : ''}</h2>
                                 <p style="white-space:pre-wrap;">${data.content}</p>
@@ -291,18 +278,31 @@
             } else { alert("Password မှားယွင်းနေပါသည်။"); }
         };
 
-        window.handlePassUpdate = async () => {
-            const oldP = document.getElementById('oldP').value;
-            const newP = document.getElementById('newP').value;
-            const ref = doc(db, "settings", "admin");
-            const s = await getDoc(ref);
-            if (s.data().password === oldP) {
-                await updateDoc(ref, { password: newP });
-                alert("Password ပြောင်းပြီးပါပြီ။"); hideAllModals();
-            } else { alert("Password အဟောင်း မှားနေပါသည်။"); }
+        window.editPost = (id, cat, title, content, url) => {
+            document.getElementById('edit-id').value = id; 
+            document.getElementById('postCat').value = cat;
+            document.getElementById('postTitle').value = title; 
+            document.getElementById('postContent').value = content;
+            document.getElementById('postAudioUrl').value = url; 
+            showModal('upload-modal');
         };
 
-        window.handleSave = async () => {
+        window.deletePost = async (id) => { if(confirm("ဖျက်မှာလား?")) await deleteDoc(doc(db, "portal_content", id)); };
+
+        // --- Event Listeners ---
+        document.getElementById('theme-btn').onclick = window.toggleTheme;
+        document.getElementById('m-all').onclick = () => window.loadContent('all');
+        document.getElementById('m-audio').onclick = () => window.loadContent('audio');
+        document.getElementById('m-study').onclick = () => window.loadContent('study');
+        document.getElementById('admin-status').onclick = () => showModal('login-modal');
+        document.getElementById('login-submit').onclick = window.handleLogin;
+        document.getElementById('overlay').onclick = window.hideAllModals;
+        document.getElementById('play-pause-btn').onclick = window.togglePlay;
+        document.getElementById('next-btn').onclick = window.playNext;
+        document.getElementById('prev-btn').onclick = window.playPrevious;
+        document.getElementById('close-player-btn').onclick = () => { audio.pause(); document.getElementById('player-bar').style.display = 'none'; };
+
+        document.getElementById('save-post-btn').onclick = async () => {
             const id = document.getElementById('edit-id').value;
             const payload = {
                 title: document.getElementById('postTitle').value,
@@ -314,23 +314,6 @@
             if(id) await updateDoc(doc(db, "portal_content", id), payload);
             else await addDoc(collection(db, "portal_content"), payload);
             hideAllModals();
-        };
-
-        window.deletePost = async (id) => { if(confirm("ဖျက်မှာလား?")) await deleteDoc(doc(db, "portal_content", id)); };
-
-        // --- Common Helpers ---
-        window.showModal = (id) => { document.getElementById(id).style.display='block'; document.getElementById('overlay').style.display='block'; };
-        window.hideAllModals = () => { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); document.getElementById('overlay').style.display='none'; };
-        window.toggleTheme = () => { const b = document.body; b.setAttribute('data-theme', b.getAttribute('data-theme')==='light'?'dark':'light'); };
-        window.handleFilter = (cat, id) => {
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('menu-active'));
-            document.getElementById(id).classList.add('menu-active');
-            loadContent(cat);
-        };
-        window.editPost = (id, cat, title, content, url) => {
-            document.getElementById('edit-id').value = id; document.getElementById('postCat').value = cat;
-            document.getElementById('postTitle').value = title; document.getElementById('postContent').value = content;
-            document.getElementById('postAudioUrl').value = url; showModal('upload-modal');
         };
 
         loadContent();
