@@ -26,12 +26,14 @@
 
         /* Sidebar */
         .sidebar { width: 100%; background: var(--sidebar-bg); color: white; padding: 20px; position: sticky; top: 0; z-index: 100; box-sizing: border-box; }
-        @media (min-width: 768px) { .sidebar { width: 280px; height: 100vh; } }
+        @media (min-width: 768px) { .sidebar { width: 280px; height: 100vh; position: fixed; } }
 
         .menu-item { padding: 12px; margin: 8px 0; border-radius: 8px; cursor: pointer; transition: 0.3s; display: block; }
         .menu-active { background: var(--accent); font-weight: bold; }
 
         .main { flex: 1; padding: 20px; padding-bottom: 180px; }
+        @media (min-width: 768px) { .main { margin-left: 280px; } }
+        
         #content-display { max-width: 800px; margin: 0 auto; }
         
         .post-card { background: var(--card-bg); border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; border: 3px solid transparent; transition: 0.3s; position: relative; }
@@ -68,7 +70,7 @@
 <body data-theme="light">
 
     <div class="sidebar">
-        <h2>🎓အိမ့်ချယ်ရီမိုဘိုင်း-လပတ Portal 2026</h2>
+        <h2>🎓 အိမ့်ချယ်ရီမိုဘိုင်း-လပတ Portal 2026</h2>
         <div id="theme-btn" style="cursor:pointer; text-align:center; padding:10px; background:rgba(255,255,255,0.1); border-radius:8px; margin-bottom:15px;">🌓 Theme Change</div>
         
         <div id="m-all" class="menu-item menu-active">🏠 အားလုံး</div>
@@ -78,7 +80,8 @@
         <div style="margin-top:20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:10px;">
             <div id="admin-status" style="cursor:pointer; color:#2ecc71;">🔒 Admin Login</div>
             <div id="admin-tools" style="display:none; margin-top:10px;">
-                <button id="change-pass-btn" style="width:100%; background:#f39c12; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; font-size:11px;">🔑 Change Password</button>
+                <button id="change-pass-btn" style="width:100%; background:#f39c12; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; font-size:11px; margin-bottom: 5px;">🔑 Change Password</button>
+                <button id="logout-btn" style="width:100%; background:#e74c3c; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; font-size:11px;">🚪 Log Out</button>
             </div>
         </div>
     </div>
@@ -115,13 +118,6 @@
         <h3>Admin Login</h3>
         <input type="password" id="loginPass" placeholder="Password">
         <button class="btn-primary" id="login-submit">Login</button>
-    </div>
-
-    <div id="pass-modal" class="modal">
-        <h3>Password ပြောင်းရန်</h3>
-        <input type="password" id="oldP" placeholder="Old Password">
-        <input type="password" id="newP" placeholder="New Password">
-        <button class="btn-primary" id="pass-submit">Update</button>
     </div>
 
     <div id="upload-modal" class="modal">
@@ -262,14 +258,11 @@
         // --- Firebase Content Loader ---
         window.loadContent = (filter = 'all') => {
             currentCategory = filter;
-            
-            // Sidebar UI update
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('menu-active'));
             if(filter === 'all') document.getElementById('m-all').classList.add('menu-active');
             if(filter === 'audio') document.getElementById('m-audio').classList.add('menu-active');
             if(filter === 'study') document.getElementById('m-study').classList.add('menu-active');
 
-            // Category title update
             const titles = { 'all': '🏠 အားလုံး', 'audio': '🎵 သီချင်းနှင့် တရား', 'study': '📘 စာကျက်နည်းများ' };
             document.getElementById('category-title').innerText = titles[filter];
 
@@ -291,41 +284,47 @@
 
                     let adminHtml = isAdmin ? `
                         <div class="admin-controls">
-                            <button onclick="window.editPost('${id}', '${data.category}', \`${data.title}\`, \`${data.content}\`, '${data.audioUrl}')" style="color:#3498db; border:none; background:none; cursor:pointer;">ပြင်ရန်</button>
-                            <button onclick="window.deletePost('${id}')" style="color:#e74c3c; border:none; background:none; cursor:pointer;">ဖျက်ရန်</button>
+                            <button onclick="window.editPost('${id}', '${data.category}', \`${data.title}\`, \`${data.content}\`, '${data.audioUrl}')" style="color:#3498db; border:none; background:none; cursor:pointer; font-size:12px;">ပြင်ရန်</button>
+                            <button onclick="window.deletePost('${id}')" style="color:#e74c3c; border:none; background:none; cursor:pointer; font-size:12px;">ဖျက်ရန်</button>
                         </div>` : '';
 
                     display.innerHTML += `
                         <div class="post-card" id="card-${id}">
                             ${adminHtml}
                             <div style="padding:20px; cursor: ${hasAudio ? 'pointer' : 'default'}" onclick="${hasAudio ? `window.initTrack(${pIdx})` : ''}">
-                                <small>#${data.category}</small>
+                                <small style="color:var(--accent)">#${data.category}</small>
                                 <h2 style="margin:5px 0;">${data.title} ${hasAudio ? '🎵' : ''}</h2>
                                 <p style="white-space:pre-wrap;">${data.content}</p>
                             </div>
                         </div>`;
                 });
-                
-                if(snap.empty) {
-                    display.innerHTML = "<p style='text-align:center; padding:20px;'>ဘာမှမရှိသေးပါ။</p>";
-                }
-            }, (error) => {
-                console.error("Firebase Error:", error);
+                if(snap.empty) display.innerHTML = "<p style='text-align:center; padding:20px;'>ဘာမှမရှိသေးပါ။</p>";
             });
         };
 
         // --- Admin Actions ---
         window.handleLogin = async () => {
             const pass = document.getElementById('loginPass').value;
-            const s = await getDoc(doc(db, "settings", "admin"));
-            if (pass === (s.exists() ? s.data().password : "admin123")) {
-                isAdmin = true;
-                document.getElementById('admin-status').innerText = "🔓 Admin Active";
-                document.getElementById('add-btn').style.display = 'block';
-                document.getElementById('admin-tools').style.display = 'block';
-                hideAllModals(); 
-                window.loadContent(currentCategory);
-            } else { alert("Password မှားယွင်းနေပါသည်။"); }
+            try {
+                const s = await getDoc(doc(db, "settings", "admin"));
+                if (pass === (s.exists() ? s.data().password : "admin123")) {
+                    isAdmin = true;
+                    document.getElementById('admin-status').innerText = "🔓 Admin Active";
+                    document.getElementById('add-btn').style.display = 'block';
+                    document.getElementById('admin-tools').style.display = 'block';
+                    hideAllModals(); 
+                    window.loadContent(currentCategory);
+                } else { alert("Password မှားယွင်းနေပါသည်။"); }
+            } catch(e) { alert("Error: " + e.message); }
+        };
+
+        window.handleLogout = () => {
+            isAdmin = false;
+            document.getElementById('admin-status').innerText = "🔒 Admin Login";
+            document.getElementById('add-btn').style.display = 'none';
+            document.getElementById('admin-tools').style.display = 'none';
+            window.loadContent(currentCategory);
+            alert("Logged Out Success!");
         };
 
         window.editPost = (id, cat, title, content, url) => {
@@ -344,8 +343,9 @@
         document.getElementById('m-all').onclick = () => window.loadContent('all');
         document.getElementById('m-audio').onclick = () => window.loadContent('audio');
         document.getElementById('m-study').onclick = () => window.loadContent('study');
-        document.getElementById('admin-status').onclick = () => showModal('login-modal');
+        document.getElementById('admin-status').onclick = () => { if(!isAdmin) showModal('login-modal'); };
         document.getElementById('login-submit').onclick = window.handleLogin;
+        document.getElementById('logout-btn').onclick = window.handleLogout;
         document.getElementById('overlay').onclick = window.hideAllModals;
         document.getElementById('play-pause-btn').onclick = window.togglePlay;
         document.getElementById('next-btn').onclick = window.playNext;
@@ -362,9 +362,24 @@
                 category: document.getElementById('postCat').value,
                 date: serverTimestamp()
             };
-            if(id) await updateDoc(doc(db, "portal_content", id), payload);
-            else await addDoc(collection(db, "portal_content"), payload);
-            hideAllModals();
+            try {
+                if(id) await updateDoc(doc(db, "portal_content", id), payload);
+                else await addDoc(collection(db, "portal_content"), payload);
+                hideAllModals();
+                // Clear fields
+                document.getElementById('edit-id').value = "";
+                document.getElementById('postTitle').value = "";
+                document.getElementById('postContent').value = "";
+                document.getElementById('postAudioUrl').value = "";
+            } catch(e) { alert("Save Error!"); }
+        };
+
+        document.getElementById('add-btn').onclick = () => {
+            document.getElementById('edit-id').value = "";
+            document.getElementById('postTitle').value = "";
+            document.getElementById('postContent').value = "";
+            document.getElementById('postAudioUrl').value = "";
+            showModal('upload-modal');
         };
 
         // Initial Load
