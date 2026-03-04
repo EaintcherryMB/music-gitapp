@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>အိမ့်ချယ်ရီမိုဘိုင်း-လပတ Portal 2026 (Full Pro)</title>
+    <title>Student Portal 2026 (Full Pro)</title>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -56,7 +56,6 @@
         .p-btn:hover { color: var(--accent); transform: scale(1.1); }
         .active-repeat { color: #2ecc71; text-shadow: 0 0 8px #2ecc71; }
 
-        /* Modals */
         .admin-controls { display: flex; padding: 10px; background: rgba(0,0,0,0.05); justify-content: flex-end; gap: 15px; }
         .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); padding: 25px; border-radius: 15px; z-index: 3000; width: 90%; max-width: 400px; box-shadow: 0 10px 50px rgba(0,0,0,0.3); }
         #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2999; backdrop-filter: blur(4px); }
@@ -69,7 +68,7 @@
 <body data-theme="light">
 
     <div class="sidebar">
-        <h2>🎓အိမ့်ချယ်ရီမိုဘိုင်း-လပတ Portal 2026</h2>
+        <h2>🎓 Portal 2026</h2>
         <div id="theme-btn" style="cursor:pointer; text-align:center; padding:10px; background:rgba(255,255,255,0.1); border-radius:8px; margin-bottom:15px;">🌓 Theme Change</div>
         
         <div id="m-all" class="menu-item menu-active">🏠 အားလုံး</div>
@@ -156,7 +155,8 @@
         let isAdmin = false;
         let playlist = [];
         let currentIndex = -1;
-        let repeatMode = 0; // 0: Off, 1: All, 2: One
+        let repeatMode = 0; 
+        let currentCategory = 'all';
 
         const audio = document.getElementById('audio-engine');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -259,10 +259,24 @@
             }
         };
 
-        // --- Firebase Content ---
+        // --- Firebase Content Loader ---
         window.loadContent = (filter = 'all') => {
+            currentCategory = filter;
+            
+            // Sidebar UI update
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('menu-active'));
+            if(filter === 'all') document.getElementById('m-all').classList.add('menu-active');
+            if(filter === 'audio') document.getElementById('m-audio').classList.add('menu-active');
+            if(filter === 'study') document.getElementById('m-study').classList.add('menu-active');
+
+            // Category title update
+            const titles = { 'all': '🏠 အားလုံး', 'audio': '🎵 သီချင်းနှင့် တရား', 'study': '📘 စာကျက်နည်းများ' };
+            document.getElementById('category-title').innerText = titles[filter];
+
             let q = query(collection(db, "portal_content"), orderBy("date", "desc"));
-            if (filter !== 'all') q = query(collection(db, "portal_content"), where("category", "==", filter), orderBy("date", "desc"));
+            if (filter !== 'all') {
+                q = query(collection(db, "portal_content"), where("category", "==", filter), orderBy("date", "desc"));
+            }
 
             onSnapshot(q, (snap) => {
                 const display = document.getElementById('content-display');
@@ -291,6 +305,12 @@
                             </div>
                         </div>`;
                 });
+                
+                if(snap.empty) {
+                    display.innerHTML = "<p style='text-align:center; padding:20px;'>ဘာမှမရှိသေးပါ။</p>";
+                }
+            }, (error) => {
+                console.error("Firebase Error:", error);
             });
         };
 
@@ -303,7 +323,8 @@
                 document.getElementById('admin-status').innerText = "🔓 Admin Active";
                 document.getElementById('add-btn').style.display = 'block';
                 document.getElementById('admin-tools').style.display = 'block';
-                hideAllModals(); loadContent();
+                hideAllModals(); 
+                window.loadContent(currentCategory);
             } else { alert("Password မှားယွင်းနေပါသည်။"); }
         };
 
@@ -346,7 +367,8 @@
             hideAllModals();
         };
 
-        loadContent();
+        // Initial Load
+        window.loadContent('all');
     </script>
 </body>
 </html>
