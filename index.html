@@ -98,7 +98,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        .song-info { cursor: pointer; flex-grow: 1; margin-right: 10px; }
+        .song-info { cursor: pointer; flex-grow: 1; margin-right: 10px; text-align: left; }
         .song-item.active { border-left: 5px solid #1db954; background: rgba(40, 40, 40, 0.9); color: #1db954; }
         
         .share-btn {
@@ -116,9 +116,9 @@
 <body>
 
     <div class="marquee">
-        <h2>🎵 အိမ့်ချယ်ရီမိုဘိုင်း music — “အိမ့်ချယ်ရီ မိုဘိုင်းလ်နှင့်လျှပ်စစ်” အမှတ်(၅)ရပ်ကွက်၊ဒို့အင်အားဆိုင်ရှေ့၊
+        <h2>🎵 🎵 အိမ့်ချယ်ရီမိုဘိုင်း music — “အိမ့်ချယ်ရီ မိုဘိုင်းလ်နှင့်လျှပ်စစ်” အမှတ်(၅)ရပ်ကွက်၊ဒို့အင်အားဆိုင်ရှေ့၊
             ကုန်သည်လမ်း၊လပွတ္တာမြို့။ ဖုန်း-09790199067-09262450004
-            နားဆင်ပေးမှုကို ကျေးဇူးတင်ပါသည် 🎵 —</h2>
+            နားဆင်ပေးမှုကို ကျေးဇူးတင်ပါသည် —</h2>
     </div>
 
     <div class="player-container">
@@ -140,6 +140,19 @@
         const username = "EaintcherryMB"; 
         const repo = "music-gitapp";
 
+        // --- အခြား GitHub မှ mp3 link များ ဖြည့်ရန် နေရာ ---
+        // download_url နေရာတွင် 'Raw' link သို့မဟုတ် တိုက်ရိုက် link ထည့်ပါ
+        const otherSongs = [
+            {
+                name: "နမူနာ သီချင်း ၁",
+                download_url: "https://example.com/song1.mp3" 
+            },
+            {
+                name: "နမူနာ သီချင်း ၂",
+                download_url: "https://example.com/song2.mp3"
+            }
+        ];
+
         const playlistElement = document.getElementById('playlist');
         const audioPlayer = document.getElementById('audio-player');
         const currentSongTitle = document.getElementById('current-song');
@@ -151,9 +164,13 @@
 
         async function fetchSongs() {
             try {
+                // ၁။ မိမိ Repo ထဲမှ mp3 များဖတ်ခြင်း
                 const response = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/`);
                 const files = await response.json();
-                songs = files.filter(file => file.name.toLowerCase().endsWith('.mp3'));
+                let myRepoSongs = files.filter(file => file.name.toLowerCase().endsWith('.mp3'));
+                
+                // ၂။ Repo သီချင်းများနှင့် အပြင်မှ သီချင်းများကို ပေါင်းခြင်း
+                songs = [...myRepoSongs, ...otherSongs];
                 
                 if (songs.length === 0) {
                     playlistElement.innerHTML = "<li>သီချင်းမရှိပါ။</li>";
@@ -166,18 +183,16 @@
                     li.className = "song-item";
                     li.id = "song-" + index;
                     
-                    // သီချင်းနာမည်အပိုင်း
                     const infoDiv = document.createElement('div');
                     infoDiv.className = "song-info";
-                    infoDiv.innerText = "▶ " + song.name.replace('.mp3', '');
+                    infoDiv.innerText = "▶ " + (song.name ? song.name.replace('.mp3', '') : "Unknown");
                     infoDiv.onclick = () => playSong(index);
                     
-                    // Share ခလုတ်အပိုင်း
                     const shareBtn = document.createElement('button');
                     shareBtn.className = "share-btn";
                     shareBtn.innerHTML = "Share 🔗";
                     shareBtn.onclick = (e) => {
-                        e.stopPropagation(); // play မဖြစ်အောင်တားခြင်း
+                        e.stopPropagation();
                         shareSong(song.name);
                     };
 
@@ -186,7 +201,8 @@
                     playlistElement.appendChild(li);
                 });
             } catch (error) {
-                playlistElement.innerHTML = "<li>Error loading songs.</li>";
+                console.error(error);
+                playlistElement.innerHTML = "<li>Error: သီချင်းများ မဖတ်နိုင်ပါ။</li>";
             }
         }
 
@@ -200,24 +216,6 @@
             
             document.querySelectorAll('.song-item').forEach(item => item.classList.remove('active'));
             document.getElementById("song-" + index).classList.add('active');
-        }
-
-        // Share လုပ်ဆောင်ချက်
-        function shareSong(songName) {
-            const pageUrl = window.location.href;
-            const textToShare = `အိမ့်ချယ်ရီမိုဘိုင်းမှာ '${songName.replace('.mp3', '')}' ကို နားဆင်လိုက်ပါ 🎵`;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: 'EaintcherryMB Music',
-                    text: textToShare,
-                    url: pageUrl
-                }).catch(err => console.log('Error sharing', err));
-            } else {
-                // Browser က Share API မထောက်ပံ့ရင် Link ကို Copy ကူးပေးမယ်
-                navigator.clipboard.writeText(`${textToShare} \n ${pageUrl}`);
-                alert("Share Link ကို Copy ကူးပြီးပါပြီ။ Messenger/Viber တွင် Paste လုပ်ပြီး ပို့နိုင်ပါသည်။");
-            }
         }
 
         function nextSong() {
@@ -244,6 +242,19 @@
                 repeatMode = 'off';
                 repeatBtn.innerText = "🔁 Repeat Off";
                 repeatBtn.classList.remove('active-mode');
+            }
+        }
+
+        function shareSong(songName) {
+            const pageUrl = window.location.href;
+            const cleanName = songName.replace('.mp3', '');
+            const textToShare = `အိမ့်ချယ်ရီမိုဘိုင်းမှာ '${cleanName}' ကို နားဆင်လိုက်ပါ 🎵`;
+            
+            if (navigator.share) {
+                navigator.share({ title: 'EaintcherryMB Music', text: textToShare, url: pageUrl });
+            } else {
+                navigator.clipboard.writeText(`${textToShare} \n ${pageUrl}`);
+                alert("Share Link ကို Copy ကူးပြီးပါပြီ။");
             }
         }
 
