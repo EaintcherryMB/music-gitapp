@@ -1,3 +1,3 @@
 # music-gitapp
-My first web music player
-//Link//-[(https://github.com/EaintcherryMB/music-gitapp.git)]
+အိမ့်ချယ်ရီ music
+https://eaintcherrymb.github.io/music-gitapp/
