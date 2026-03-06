@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EaintcherryMB Music Player</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f0f0f; color: #e0e0e0; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+        .player-container { width: 90%; max-width: 450px; background: #1a1a1a; padding: 25px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.8); text-align: center; position: sticky; top: 10px; z-index: 100; border: 1px solid #333; }
+        audio { width: 100%; margin-top: 15px; filter: invert(90%); }
+        #current-song { font-size: 1.1em; font-weight: bold; color: #1db954; margin-bottom: 10px; min-height: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #playlist { list-style: none; padding: 0; margin-top: 30px; width: 90%; max-width: 450px; }
+        .song-item { background: #252525; margin-bottom: 8px; padding: 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; border-left: 5px solid transparent; display: flex; align-items: center; }
+        .song-item:hover { background: #333; transform: translateX(5px); }
+        .song-item.active { border-left: 5px solid #1db954; background: #282828; color: #1db954; }
+        h2 { font-size: 1.5em; margin-bottom: 20px; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+    <h2>🎵 အိမ့်ချယ်ရီမိုဘိုင်း music</h2>
+
+    <div class="player-container">
+        <div id="current-song">သီချင်းရွေးချယ်ပါ</div>
+        <audio id="audio-player" controls></audio>
+    </div>
+
+    <ul id="playlist">
+        <li>သီချင်းများ ရှာဖွေနေသည်...</li>
+    </ul>
+
+    <script>
+        // သင့်ရဲ့ အချက်အလက်များ
+        const username = "EaintcherryMB"; 
+        const repo = "music-gitapp";
+
+        const playlistElement = document.getElementById('playlist');
+        const audioPlayer = document.getElementById('audio-player');
+        const currentSongTitle = document.getElementById('current-song');
+
+        async function fetchSongs() {
+            const url = `https://api.github.com/repos/${username}/${repo}/contents/`;
+            
+            try {
+                const response = await fetch(url);
+                const files = await response.json();
+                
+                // mp3 file များကိုသာ စစ်ထုတ်ယူမည်
+                const songs = files.filter(file => file.name.toLowerCase().endsWith('.mp3'));
+                
+                if (songs.length === 0) {
+                    playlistElement.innerHTML = "<li>သီချင်း (mp3) များ တင်ထားခြင်း မရှိသေးပါ။</li>";
+                    return;
+                }
+
+                playlistElement.innerHTML = ""; 
+                
+                songs.forEach((song) => {
+                    const li = document.createElement('li');
+                    li.className = "song-item";
+                    // .mp3 စာသားကို ဖျက်ပြီး အမည်ကို ပြမည်
+                    li.innerText = "▶ " + song.name.replace('.mp3', '');
+                    li.onclick = () => playSong(song.download_url, song.name, li);
+                    playlistElement.appendChild(li);
+                });
+
+            } catch (error) {
+                playlistElement.innerHTML = "<li>Error: သီချင်းစာရင်းကို မဖတ်နိုင်ပါ။</li>";
+                console.error(error);
+            }
+        }
+
+        function playSong(url, name, element) {
+            audioPlayer.src = url;
+            audioPlayer.play();
+            currentSongTitle.innerText = name.replace('.mp3', '');
+            
+            // Active ဖြစ်နေသော သီချင်းကို အရောင်ပြောင်းရန်
+            document.querySelectorAll('.song-item').forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        fetchSongs();
+    </script>
+</body>
+</html>
