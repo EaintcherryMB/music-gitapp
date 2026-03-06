@@ -3,130 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EaintcherryMB Dashboard</title>
+    <title>EaintcherryMB Music Player</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            color: #e0e0e0; margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center;
-            background: url('shop-bg.jpg') center/cover no-repeat fixed;
+            color: #e0e0e0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px; 
+            margin: 0;
+            min-height: 100vh;
+            background-image: url('shop-bg.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
         }
-        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: -1; }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
 
-        .header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 500px; }
-        .header h2 { color: #1db954; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-
-        /* Song Card Style */
-        .song-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
+        .marquee {
             width: 100%;
             max-width: 450px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+            margin-bottom: 20px;
         }
-        .tag { color: #1db954; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
-        .song-title { font-size: 1.4em; font-weight: bold; margin: 10px 0; }
+        .marquee h2 {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 15s linear infinite;
+            color: #1db954;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        @keyframes marquee {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
+
+        .player-container { 
+            width: 90%; 
+            max-width: 450px; 
+            background: rgba(26, 26, 26, 0.9);
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.8); 
+            text-align: center; 
+            position: sticky; 
+            top: 10px; 
+            z-index: 100; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
         
-        .action-btns { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
-        .btn-sm { 
-            background: rgba(255,255,255,0.1); border: 1px solid #555; color: white;
-            padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;
-        }
-        .btn-sm:hover { background: #1db954; border-color: #1db954; }
+        #current-song { font-size: 1.1em; font-weight: bold; color: #1db954; margin-bottom: 15px; }
+        audio { width: 100%; filter: invert(90%); }
 
-        .play-btn {
-            background: #1db954; color: white; border: none; padding: 10px 20px;
-            border-radius: 30px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px;
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
         }
-
-        /* Floating Add Button */
-        .fab {
-            position: fixed; bottom: 30px; right: 30px;
-            width: 60px; height: 60px; background: #1db954;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 30px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(29, 185, 84, 0.4);
-            border: none; transition: 0.3s; z-index: 1000;
+        .btn {
+            background: none;
+            border: 1px solid #555;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
         }
-        .fab:hover { transform: scale(1.1); }
+        .btn:hover { background: #333; border-color: #1db954; }
+        .active-mode { background: #1db954 !important; border-color: #1db954; }
 
-        /* Admin Section */
-        #admin-panel { margin-top: 30px; font-size: 12px; color: #888; cursor: pointer; }
+        #playlist { list-style: none; padding: 0; margin-top: 30px; width: 90%; max-width: 450px; }
+        .song-item { 
+            background: rgba(37, 37, 37, 0.8);
+            margin-bottom: 8px; 
+            padding: 12px 15px; 
+            border-radius: 10px; 
+            transition: all 0.2s ease; 
+            border-left: 5px solid transparent; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .song-info { cursor: pointer; flex-grow: 1; margin-right: 10px; }
+        .song-item.active { border-left: 5px solid #1db954; background: rgba(40, 40, 40, 0.9); color: #1db954; }
+        
+        .share-btn {
+            background: #444;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .share-btn:hover { background: #1db954; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h2>🎵 အိမ့်ချယ်ရီမိုဘိုင်း Dashboard</h2>
+    <div class="marquee">
+        <h2>🎵 အိမ့်ချယ်ရီမိုဘိုင်း music — နားဆင်ပေးမှုကို ကျေးဇူးတင်ပါသည် —</h2>
     </div>
 
-    <div id="playlist-container" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+    <div class="player-container">
+        <div id="current-song">သီချင်းရွေးချယ်ပါ</div>
+        <audio id="audio-player" controls></audio>
+        
+        <div class="controls">
+            <button class="btn" onclick="prevSong()">⏮ Prev</button>
+            <button class="btn" id="repeat-btn" onclick="toggleRepeat()">🔁 Repeat Off</button>
+            <button class="btn" onclick="nextSong()">Next ⏭</button>
         </div>
+    </div>
 
-    <button class="fab" onclick="addNewSong()">+</button>
-
-    <div id="admin-panel" onclick="adminLogin()">🔐 Admin Login (For Settings)</div>
+    <ul id="playlist">
+        <li>သီချင်းများ ရှာဖွေနေသည်...</li>
+    </ul>
 
     <script>
         const username = "EaintcherryMB"; 
         const repo = "music-gitapp";
+
+        const playlistElement = document.getElementById('playlist');
+        const audioPlayer = document.getElementById('audio-player');
+        const currentSongTitle = document.getElementById('current-song');
+        const repeatBtn = document.getElementById('repeat-btn');
+
         let songs = [];
+        let currentIndex = -1;
+        let repeatMode = 'off';
 
-        async function loadSongs() {
-            const container = document.getElementById('playlist-container');
-            container.innerHTML = "<p>Loading songs...</p>";
-
+        async function fetchSongs() {
             try {
                 const response = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/`);
                 const files = await response.json();
-                songs = files.filter(f => f.name.toLowerCase().endsWith('.mp3'));
+                songs = files.filter(file => file.name.toLowerCase().endsWith('.mp3'));
+                
+                if (songs.length === 0) {
+                    playlistElement.innerHTML = "<li>သီချင်းမရှိပါ။</li>";
+                    return;
+                }
 
-                container.innerHTML = "";
+                playlistElement.innerHTML = ""; 
                 songs.forEach((song, index) => {
-                    const card = document.createElement('div');
-                    card.className = "song-card";
-                    card.innerHTML = `
-                        <div class="tag">#audio</div>
-                        <div class="action-btns">
-                            <button class="btn-sm" onclick="editSong('${song.name}')">ပြင်ရန်</button>
-                            <button class="btn-sm" onclick="deleteSong('${song.name}', '${song.sha}')">ဖျက်ရန်</button>
-                        </div>
-                        <div class="song-title">${song.name.replace('.mp3', '')}</div>
-                        <button class="play-btn" onclick="location.href='index.html?play=${index}'">
-                            <span>▶</span> ဖွင့်မည်
-                        </button>
-                    `;
-                    container.appendChild(card);
+                    const li = document.createElement('li');
+                    li.className = "song-item";
+                    li.id = "song-" + index;
+                    
+                    // သီချင်းနာမည်အပိုင်း
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = "song-info";
+                    infoDiv.innerText = "▶ " + song.name.replace('.mp3', '');
+                    infoDiv.onclick = () => playSong(index);
+                    
+                    // Share ခလုတ်အပိုင်း
+                    const shareBtn = document.createElement('button');
+                    shareBtn.className = "share-btn";
+                    shareBtn.innerHTML = "Share 🔗";
+                    shareBtn.onclick = (e) => {
+                        e.stopPropagation(); // play မဖြစ်အောင်တားခြင်း
+                        shareSong(song.name);
+                    };
+
+                    li.appendChild(infoDiv);
+                    li.appendChild(shareBtn);
+                    playlistElement.appendChild(li);
                 });
-            } catch (e) { container.innerHTML = "<p>Error loading files.</p>"; }
-        }
-
-        // --- functions များ ---
-
-        function addNewSong() {
-            alert("သီချင်းအသစ်တင်ရန် GitHub App သို့မဟုတ် Website တွင် Upload လုပ်ပေးပါခင်ဗျာ။ \n(API ဖြင့် တိုက်ရိုက်တင်ရန် Token လိုအပ်ပါသည်)");
-        }
-
-        function editSong(name) {
-            const newName = prompt("သီချင်းအမည်အသစ် ရိုက်ထည့်ပါ:", name.replace('.mp3', ''));
-            if(newName) alert("အမည်ကို '" + newName + "' သို့ ပြောင်းလဲရန် GitHub တွင် Rename လုပ်ပေးပါ။");
-        }
-
-        function deleteSong(name, sha) {
-            if(confirm("'" + name + "' ကို ဖျက်မှာ သေချာပါသလား?")) {
-                alert("ဖျက်ရန်အတွက် GitHub Repository ထဲသို့သွား၍ " + name + " ကို Delete လုပ်ပေးပါခင်ဗျာ။");
+            } catch (error) {
+                playlistElement.innerHTML = "<li>Error loading songs.</li>";
             }
         }
 
-        function adminLogin() {
-            alert("Admin Mode ကို အသုံးပြုရန် GitHub Developer Settings တွင် 'Personal Access Token' တစ်ခု ဆောက်ထားရန် လိုအပ်ပါသည်ခင်ဗျာ။");
+        function playSong(index) {
+            if (index < 0 || index >= songs.length) return;
+            currentIndex = index;
+            const song = songs[index];
+            audioPlayer.src = song.download_url;
+            audioPlayer.play();
+            currentSongTitle.innerText = song.name.replace('.mp3', '');
+            
+            document.querySelectorAll('.song-item').forEach(item => item.classList.remove('active'));
+            document.getElementById("song-" + index).classList.add('active');
         }
 
-        loadSongs();
+        // Share လုပ်ဆောင်ချက်
+        function shareSong(songName) {
+            const pageUrl = window.location.href;
+            const textToShare = `အိမ့်ချယ်ရီမိုဘိုင်းမှာ '${songName.replace('.mp3', '')}' ကို နားဆင်လိုက်ပါ 🎵`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'EaintcherryMB Music',
+                    text: textToShare,
+                    url: pageUrl
+                }).catch(err => console.log('Error sharing', err));
+            } else {
+                // Browser က Share API မထောက်ပံ့ရင် Link ကို Copy ကူးပေးမယ်
+                navigator.clipboard.writeText(`${textToShare} \n ${pageUrl}`);
+                alert("Share Link ကို Copy ကူးပြီးပါပြီ။ Messenger/Viber တွင် Paste လုပ်ပြီး ပို့နိုင်ပါသည်။");
+            }
+        }
+
+        function nextSong() {
+            let nextIndex = currentIndex + 1;
+            if (nextIndex >= songs.length) nextIndex = 0;
+            playSong(nextIndex);
+        }
+
+        function prevSong() {
+            let prevIndex = currentIndex - 1;
+            if (prevIndex < 0) prevIndex = songs.length - 1;
+            playSong(prevIndex);
+        }
+
+        function toggleRepeat() {
+            if (repeatMode === 'off') {
+                repeatMode = 'all';
+                repeatBtn.innerText = "🔁 Repeat All";
+                repeatBtn.classList.add('active-mode');
+            } else if (repeatMode === 'all') {
+                repeatMode = 'one';
+                repeatBtn.innerText = "🔂 Repeat One";
+            } else {
+                repeatMode = 'off';
+                repeatBtn.innerText = "🔁 Repeat Off";
+                repeatBtn.classList.remove('active-mode');
+            }
+        }
+
+        audioPlayer.onended = () => {
+            if (repeatMode === 'one') {
+                audioPlayer.play();
+            } else if (repeatMode === 'all' || currentIndex < songs.length - 1) {
+                nextSong();
+            }
+        };
+
+        fetchSongs();
     </script>
 </body>
 </html>
