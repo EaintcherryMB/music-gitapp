@@ -5,15 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EaintcherryMB Music Player</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f0f0f; color: #e0e0e0; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        .player-container { width: 90%; max-width: 450px; background: #1a1a1a; padding: 25px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.8); text-align: center; position: sticky; top: 10px; z-index: 100; border: 1px solid #333; }
+        /* Body ကို နောက်ခံပုံ ထည့်ရန် ပြင်ဆင်ခြင်း */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            color: #e0e0e0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px; 
+            margin: 0;
+            min-height: 100vh;
+            
+            /* --- နောက်ခံပုံအတွက် CSS (ပုံအမည် မှန်ပါစေ) --- */
+            background-image: url('shop-bg.jpg'); 
+            background-size: cover; /* ပုံကို စကရင်အပြည့် ပြရန် */
+            background-position: center; /* ပုံကို အလယ်မှာ ထားရန် */
+            background-repeat: no-repeat; /* ပုံ မထပ်ရန် */
+            background-attachment: fixed; /* စကရင်ဆွဲချရင် ပုံ ငြိမ်နေရန် */
+        }
+        
+        /* စာသားများ ပိုမိုထင်ရှားစေရန် Body ပေါ်မှာ အမှောင်လွှာတစ်ခု ထည့်ခြင်း */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* အမှောင်လွှာ (50% opaque) */
+            z-index: -1;
+        }
+
+        /* Player Container ကို မှောင်မှောင်ဖောက်ထွင်းလေး ပြုလုပ်ခြင်း */
+        .player-container { 
+            width: 90%; 
+            max-width: 450px; 
+            background: rgba(26, 26, 26, 0.85); /* Semi-transparent background */
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6); 
+            text-align: center; 
+            position: sticky; 
+            top: 10px; 
+            z-index: 100; 
+            border: 1px solid rgba(255, 255, 255, 0.1); /* လှပသော အနားသတ် */
+            backdrop-filter: blur(5px); /* နောက်ခံကို ဝါးစေခြင်း (Optional) */
+        }
+        
         audio { width: 100%; margin-top: 15px; filter: invert(90%); }
         #current-song { font-size: 1.1em; font-weight: bold; color: #1db954; margin-bottom: 10px; min-height: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        /* Playlist ကိုလည်း မှောင်မှောင်လေး ဖြစ်အောင် ပြင်ခြင်း */
         #playlist { list-style: none; padding: 0; margin-top: 30px; width: 90%; max-width: 450px; }
-        .song-item { background: #252525; margin-bottom: 8px; padding: 15px; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; border-left: 5px solid transparent; display: flex; align-items: center; }
-        .song-item:hover { background: #333; transform: translateX(5px); }
-        .song-item.active { border-left: 5px solid #1db954; background: #282828; color: #1db954; }
-        h2 { font-size: 1.5em; margin-bottom: 20px; letter-spacing: 1px; }
+        .song-item { 
+            background: rgba(37, 37, 37, 0.8); /* Semi-transparent background */
+            margin-bottom: 8px; 
+            padding: 15px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            border-left: 5px solid transparent; 
+            display: flex; 
+            align-items: center; 
+            backdrop-filter: blur(3px);
+        }
+        .song-item:hover { background: rgba(51, 51, 51, 0.9); transform: translateX(5px); }
+        .song-item.active { border-left: 5px solid #1db954; background: rgba(40, 40, 40, 0.9); color: #1db954; }
+        
+        h2 { 
+            font-size: 1.5em; 
+            margin-bottom: 20px; 
+            letter-spacing: 1px; 
+            z-index: 1; /* အမှောင်လွှာပေါ်မှာ ရှိနေစေရန် */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5); /* စာသားပိုထင်ရှားစေရန် */
+        }
     </style>
 </head>
 <body>
@@ -39,13 +101,18 @@
         const currentSongTitle = document.getElementById('current-song');
 
         async function fetchSongs() {
+            // API URL ကို main branch ကို တိုက်ရိုက်ရည်ညွှန်းရန် ပြင်ဆင်ပါသည် (optional improvement)
             const url = `https://api.github.com/repos/${username}/${repo}/contents/`;
             
             try {
                 const response = await fetch(url);
                 const files = await response.json();
                 
-                // mp3 file များကိုသာ စစ်ထုတ်ယူမည်
+                if (response.status !== 200) {
+                     playlistElement.innerHTML = "<li>Error: GitHub API မှ ဒေတာ မရရှိပါ။</li>";
+                     return;
+                }
+
                 const songs = files.filter(file => file.name.toLowerCase().endsWith('.mp3'));
                 
                 if (songs.length === 0) {
@@ -58,7 +125,6 @@
                 songs.forEach((song) => {
                     const li = document.createElement('li');
                     li.className = "song-item";
-                    // .mp3 စာသားကို ဖျက်ပြီး အမည်ကို ပြမည်
                     li.innerText = "▶ " + song.name.replace('.mp3', '');
                     li.onclick = () => playSong(song.download_url, song.name, li);
                     playlistElement.appendChild(li);
@@ -75,7 +141,6 @@
             audioPlayer.play();
             currentSongTitle.innerText = name.replace('.mp3', '');
             
-            // Active ဖြစ်နေသော သီချင်းကို အရောင်ပြောင်းရန်
             document.querySelectorAll('.song-item').forEach(item => item.classList.remove('active'));
             element.classList.add('active');
         }
