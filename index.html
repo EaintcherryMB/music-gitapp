@@ -29,6 +29,7 @@
             z-index: -1;
         }
 
+        /* Running Text Style */
         .marquee {
             width: 100%;
             max-width: 450px;
@@ -64,8 +65,10 @@
         }
         
         #current-song { font-size: 1.1em; font-weight: bold; color: #1db954; margin-bottom: 15px; }
+        
         audio { width: 100%; filter: invert(90%); }
 
+        /* Control Buttons Style */
         .controls {
             display: flex;
             justify-content: center;
@@ -90,35 +93,21 @@
         .song-item { 
             background: rgba(37, 37, 37, 0.8);
             margin-bottom: 8px; 
-            padding: 12px 15px; 
+            padding: 15px; 
             border-radius: 10px; 
+            cursor: pointer; 
             transition: all 0.2s ease; 
             border-left: 5px solid transparent; 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
-        .song-info { cursor: pointer; flex-grow: 1; margin-right: 10px; }
         .song-item.active { border-left: 5px solid #1db954; background: rgba(40, 40, 40, 0.9); color: #1db954; }
-        
-        .share-btn {
-            background: #444;
-            color: #fff;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .share-btn:hover { background: #1db954; }
     </style>
 </head>
 <body>
 
     <div class="marquee">
-        <h2>🎵 🎵အိမ့်ချယ်ရီမိုဘိုင်း music — “အိမ့်ချယ်ရီ မိုဘိုင်းလ်နှင့်လျှပ်စစ်” အမှတ်(၅)ရပ်ကွက်၊ဒို့အင်အားဆိုင်ရှေ့၊
+        <h2 🎵 🎵အိမ့်ချယ်ရီမိုဘိုင်း music — “အိမ့်ချယ်ရီ မိုဘိုင်းလ်နှင့်လျှပ်စစ်” အမှတ်(၅)ရပ်ကွက်၊ဒို့အင်အားဆိုင်ရှေ့၊
             ကုန်သည်လမ်း၊လပွတ္တာမြို့။ ဖုန်း-09790199067-09262450004
-            နားဆင်ပေးမှုကို ကျေးဇူးတင်ပါသည်🎵  —</h2>
+            နားဆင်ပေးမှုကို ကျေးဇူးတင်ပါသည်🎵 —</h2>
     </div>
 
     <div class="player-container">
@@ -147,7 +136,7 @@
 
         let songs = [];
         let currentIndex = -1;
-        let repeatMode = 'off';
+        let repeatMode = 'off'; // off, one, all
 
         async function fetchSongs() {
             try {
@@ -165,24 +154,8 @@
                     const li = document.createElement('li');
                     li.className = "song-item";
                     li.id = "song-" + index;
-                    
-                    // သီချင်းနာမည်အပိုင်း
-                    const infoDiv = document.createElement('div');
-                    infoDiv.className = "song-info";
-                    infoDiv.innerText = "▶ " + song.name.replace('.mp3', '');
-                    infoDiv.onclick = () => playSong(index);
-                    
-                    // Share ခလုတ်အပိုင်း
-                    const shareBtn = document.createElement('button');
-                    shareBtn.className = "share-btn";
-                    shareBtn.innerHTML = "Share 🔗";
-                    shareBtn.onclick = (e) => {
-                        e.stopPropagation(); // play မဖြစ်အောင်တားခြင်း
-                        shareSong(song.name);
-                    };
-
-                    li.appendChild(infoDiv);
-                    li.appendChild(shareBtn);
+                    li.innerText = "▶ " + song.name.replace('.mp3', '');
+                    li.onclick = () => playSong(index);
                     playlistElement.appendChild(li);
                 });
             } catch (error) {
@@ -200,24 +173,6 @@
             
             document.querySelectorAll('.song-item').forEach(item => item.classList.remove('active'));
             document.getElementById("song-" + index).classList.add('active');
-        }
-
-        // Share လုပ်ဆောင်ချက်
-        function shareSong(songName) {
-            const pageUrl = window.location.href;
-            const textToShare = `အိမ့်ချယ်ရီမိုဘိုင်းမှာ '${songName.replace('.mp3', '')}' ကို နားဆင်လိုက်ပါ 🎵`;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: 'EaintcherryMB Music',
-                    text: textToShare,
-                    url: pageUrl
-                }).catch(err => console.log('Error sharing', err));
-            } else {
-                // Browser က Share API မထောက်ပံ့ရင် Link ကို Copy ကူးပေးမယ်
-                navigator.clipboard.writeText(`${textToShare} \n ${pageUrl}`);
-                alert("Share Link ကို Copy ကူးပြီးပါပြီ။ Messenger/Viber တွင် Paste လုပ်ပြီး ပို့နိုင်ပါသည်။");
-            }
         }
 
         function nextSong() {
@@ -247,6 +202,7 @@
             }
         }
 
+        // သီချင်းဆုံးသွားလျှင် လုပ်ဆောင်ချက်
         audioPlayer.onended = () => {
             if (repeatMode === 'one') {
                 audioPlayer.play();
