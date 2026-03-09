@@ -22,7 +22,6 @@
             padding: 20px; 
             margin: 0;
             min-height: 100vh;
-            /* Background ပုံရှိရင် ဒီနေရာမှာ URL ပြောင်းပါ */
             background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('shop-bg.jpg'); 
             background-size: cover;
             background-position: center;
@@ -30,7 +29,6 @@
             background-color: var(--bg-dark);
         }
 
-        /* Marquee စာသားအပိုင်း */
         .marquee {
             width: 100%;
             max-width: 500px;
@@ -50,7 +48,6 @@
             100% { transform: translate(-100%, 0); }
         }
 
-        /* Player Box (အပေါ်ကထိန်းချုပ်တဲ့အပိုင်း) */
         .player-container { 
             width: 95%; 
             max-width: 500px; 
@@ -98,9 +95,25 @@
             flex: 1;
             transition: 0.2s;
         }
+
+        /* ဖုန်းထဲက သီချင်းထည့်တဲ့ ခလုတ်အလှ */
+        .local-upload-btn {
+            background: var(--primary-color);
+            color: black;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            width: 100%;
+            transition: 0.3s;
+        }
+        .local-upload-btn:hover { background: #1ed760; }
+
         .active-mode { background: var(--primary-color) !important; }
 
-        /* Playlist (သီချင်း List အကွက်ကြီးကြီးများ) */
         #playlist { 
             list-style: none; 
             padding: 0; 
@@ -153,7 +166,6 @@
             white-space: nowrap;
         }
 
-        /* Loading လည်နေတဲ့ပုံစံ */
         .loader {
             border: 4px solid #333;
             border-top: 4px solid var(--primary-color);
@@ -173,6 +185,11 @@
     </div>
 
     <div class="player-container">
+        <input type="file" id="local-file-input" accept="audio/*" style="display: none;">
+        <button class="local-upload-btn" onclick="document.getElementById('local-file-input').click()">
+            📂 ဖုန်းထဲမှ သီချင်းရွေးဖွင့်ရန်
+        </button>
+
         <div id="current-song">သီချင်းရွေးချယ်ပါ</div>
         <audio id="audio-player" controls></audio>
         
@@ -188,25 +205,38 @@
     </ul>
 
     <script>
-        // --- ဤနေရာတွင် User နှင့် Repo များကို စိတ်ကြိုက်ထည့်နိုင်ပါသည် ---
         const sources = [
             { username: "EaintcherryMB", repo: "music-gitapp" },
             { username: "EaintcherryMB", repo: "Songs" },
             { username: "EaintcherryMB", repo: "Dhamma" },
             { username: "cherry08-p", repo: "MymusicApp" }
-            // { username: "OtherUser", repo: "RepoName" } // လိုအပ်လျှင် ဤကဲ့သို့ ထပ်တိုးပါ
         ];
 
         const playlistElement = document.getElementById('playlist');
         const audioPlayer = document.getElementById('audio-player');
         const currentSongTitle = document.getElementById('current-song');
         const repeatBtn = document.getElementById('repeat-btn');
+        const localFileInput = document.getElementById('local-file-input');
 
         let songs = [];
         let currentIndex = -1;
         let repeatMode = 'off';
 
-        // GitHub API မှ သီချင်းများလှမ်းယူခြင်း
+        // ဖုန်းထဲက သီချင်းကို ရွေးလိုက်တဲ့အခါ ဖွင့်ပေးမည့် Function
+        localFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const fileURL = URL.createObjectURL(file);
+                audioPlayer.src = fileURL;
+                audioPlayer.play();
+                currentSongTitle.innerText = file.name.replace('.mp3', '');
+                
+                // Playlist ထဲက highlight တွေကို ဖယ်လိုက်မယ်
+                document.querySelectorAll('.song-item').forEach(item => item.classList.remove('active'));
+                currentIndex = -1; 
+            }
+        });
+
         async function fetchSongs() {
             try {
                 const fetchPromises = sources.map(src => 
@@ -216,8 +246,6 @@
                 );
 
                 const results = await Promise.all(fetchPromises);
-                
-                // MP3 ဖိုင်များကိုသာ စုစည်းခြင်း
                 songs = results.flat().filter(file => file.name && file.name.toLowerCase().endsWith('.mp3'));
                 
                 if (songs.length === 0) {
@@ -232,7 +260,6 @@
             }
         }
 
-        // Playlist ကို UI ပေါ်တွင်ပြသခြင်း
         function renderPlaylist() {
             playlistElement.innerHTML = ""; 
             songs.forEach((song, index) => {
@@ -255,7 +282,6 @@
             });
         }
 
-        // သီချင်းဖွင့်ခြင်း
         function playSong(index) {
             if (index < 0 || index >= songs.length) return;
             currentIndex = index;
@@ -263,7 +289,6 @@
             audioPlayer.play();
             currentSongTitle.innerText = songs[index].name.replace('.mp3', '').replace(/[-_]/g, ' ');
             
-            // Active ဖြစ်နေတဲ့ Box ကို အရောင်ပြောင်းပြီး Scroll ဆွဲပေးခြင်း
             document.querySelectorAll('.song-item').forEach(item => item.classList.remove('active'));
             const activeItem = document.getElementById("song-" + index);
             if(activeItem) {
@@ -273,11 +298,13 @@
         }
 
         function nextSong() {
+            if (currentIndex === -1) return; // Local file ဖွင့်ထားရင် next မလုပ်ပါ
             let next = (currentIndex + 1 >= songs.length) ? 0 : currentIndex + 1;
             playSong(next);
         }
 
         function prevSong() {
+            if (currentIndex === -1) return;
             let prev = (currentIndex - 1 < 0) ? songs.length - 1 : currentIndex - 1;
             playSong(prev);
         }
@@ -312,13 +339,11 @@
             }
         }
 
-        // သီချင်းပြီးရင် နောက်တစ်ပုဒ် အလိုအလျောက်ဖွင့်ခြင်း
         audioPlayer.onended = () => {
             if (repeatMode === 'one') audioPlayer.play();
-            else nextSong();
+            else if (currentIndex !== -1) nextSong();
         };
 
-        // စတင်ချိန်တွင် သီချင်းများ ဆွဲယူရန် ခေါ်ခြင်း
         fetchSongs();
     </script>
 </body>
